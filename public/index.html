@@ -25,7 +25,7 @@
 body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:18px;line-height:1.5;
   padding-block:28px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 main{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px 20px;flex-wrap:wrap}
+header{display:flex;justify-content:flex-end;align-items:flex-start;gap:12px 20px;flex-wrap:wrap}
 .tools{display:flex;gap:8px;flex-wrap:wrap}
 .uilang{display:inline-flex;border:1px solid var(--line);border-radius:999px;background:var(--panel);padding:3px;flex:0 0 auto}
 .uilang button{font:inherit;font-size:.85rem;font-weight:500;border:0;background:transparent;color:var(--muted);padding:5px 12px;border-radius:999px;cursor:pointer}
@@ -106,15 +106,15 @@ textarea,.out{width:100%;height:clamp(18rem,40vh,32rem);margin:0;border:0;backgr
 .codebox input{font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);text-transform:uppercase;width:12em;max-width:100%}
 
 [hidden]{display:none!important}
+.phl small{color:var(--muted);font-weight:400;margin-left:6px;text-transform:none;letter-spacing:0}
+.phl b{color:var(--ink);font-weight:600}
+.swaprow{display:flex;align-items:center;justify-content:center;gap:12px;color:var(--muted);font-size:.95rem}
+.swaprow .swap{width:52px;height:52px}
 </style>
 </head>
 <body>
 <main>
   <header>
-    <div>
-      <h1>Монгол бичиг ⇄ Кирилл</h1>
-      <p class="sub" id="sub"></p>
-    </div>
     <div class="tools">
       <div class="uilang" role="group" id="theme">
         <button type="button" data-theme="light" data-i18n="light"></button>
@@ -133,28 +133,31 @@ textarea,.out{width:100%;height:clamp(18rem,40vh,32rem);margin:0;border:0;backgr
     <button class="btn" id="getAccess" type="button" data-i18n="getAccess"></button>
   </div>
 
-  <div class="bar">
-    <div class="lang" id="from"></div>
-    <button class="swap" id="swap" type="button">⇄</button>
-    <div class="lang" id="to"></div>
-  </div>
-
   <div class="ex" id="examples"></div>
 
   <div class="panes">
-    <section class="pane">
-      <div class="phead"><span data-i18n="inLabel"></span><button id="clear" type="button" data-i18n="clear"></button></div>
+    <section class="pane" id="paneC">
+      <div class="phead"><span class="phl"><b>Кирилл</b> <small id="roleC"></small></span><span id="actC"></span></div>
+      <div id="bodyC"></div>
+    </section>
+    <div class="swaprow"><button class="swap" id="swap" type="button">⇅</button><span data-i18n="swap"></span></div>
+    <section class="pane" id="paneT">
+      <div class="phead"><span class="phl"><b>Монгол бичиг</b> <small id="roleT"></small></span><span id="actT"></span></div>
+      <div id="bodyT"></div>
+    </section>
+  </div>
+  <div hidden>
+    <div id="inBlock">
       <textarea id="input" spellcheck="false" autocomplete="off"></textarea>
       <div class="keys" id="keys" hidden></div>
       <div class="under">
         <span class="count" id="count"></span>
         <button class="btn big" id="go" type="button" data-i18n="convert"></button>
       </div>
-    </section>
-    <section class="pane">
-      <div class="phead"><span data-i18n="outLabel"></span><button id="copy" type="button" data-i18n="copy"></button></div>
-      <div class="out" id="output" aria-live="polite"></div>
-    </section>
+    </div>
+    <div class="out" id="output" aria-live="polite"></div>
+    <button id="clear" type="button" data-i18n="clear"></button>
+    <button id="copy" type="button" data-i18n="copy"></button>
   </div>
   <p class="msg err" id="err" hidden></p>
 
@@ -252,6 +255,7 @@ let ui=(()=>{const v=lsGet('uiLang');if(UI[v])return v;return (navigator.languag
 const L=(k,v)=>{let s=UI[ui][k]||k;if(v)for(const x in v)s=s.split('{'+x+'}').join(v[x]);return s};
 
 const input=$('input'),output=$('output');
+const inBlock=$('inBlock'),clearBtn=$('clear'),copyBtn=$('copy'); // kept as references: they move between the two boxes
 let dir='t2c',S=null,freeUntil=0,busy=false,openPlan=null,pollT=null;
 const fmtDate=ms=>{const d=new Date(ms);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 
@@ -394,11 +398,13 @@ $('codeGo').onclick=async()=>{
 };
 
 /* ---------- direction, examples, keys, theme, language ---------- */
-const TRAD=()=>'<b>Монгол бичиг</b><small>'+L('trad')+'</small>',CYR=()=>'<b>Кирилл</b><small>'+L('cyr')+'</small>';
 const EX_T=['ᠲᠦᠮᠡᠨᠵᠣᠷᠢᠭ','ᠡᠷᠳᠡᠨᠢᠴᠣᠭᠰᠤᠮ','ᠪᠤᠶᠠᠨᠬᠦᠦ','ᠡᠩᠬᠡᠲᠩᠷᠢ'],EX_C=['Түмэнзориг','Эрдэнэчогсом','Буянхүү','Энхтэнгэр','Сүхцэцэг'];
 function setDir(d,keep){
   dir=d;const t=d==='t2c';
-  $('from').innerHTML=t?TRAD():CYR();$('to').innerHTML=t?CYR():TRAD();
+  const inP=t?'T':'C',outP=t?'C':'T';
+  $('body'+inP).replaceChildren(inBlock);$('body'+outP).replaceChildren(output);
+  $('act'+inP).replaceChildren(clearBtn);$('act'+outP).replaceChildren(copyBtn);
+  $('role'+inP).textContent=L('inLabel');$('role'+outP).textContent=L('outLabel');
   input.classList.toggle('mn',t);output.classList.toggle('mn',!t);
   $('keys').hidden=!t;
   input.placeholder=t?'ᠪᠢᠴᠢᠩ ᠬᠠᠶᠢᠭᠠᠶ…':L('placeholder');
@@ -425,7 +431,6 @@ const keys=$('keys');
 function setUi(l){
   ui=l;lsSet('uiLang',l);
   document.documentElement.lang=l;document.title=L('title');
-  $('sub').textContent=L('sub',{n:S?S.names.toLocaleString('en-US'):'28,595'});
   document.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=L(el.dataset.i18n));
   $('swap').title=L('swap');$('swap').setAttribute('aria-label',L('swap'));
   $('uilang').setAttribute('aria-label',L('uilang'));$('theme').setAttribute('aria-label',L('theme'));
