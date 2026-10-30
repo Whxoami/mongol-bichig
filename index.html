@@ -252,7 +252,7 @@
     }
 
     .w { border-radius: 3px; cursor: default; }
-    .w.dict {} 
+    .w.dict {}
     .w.split { text-decoration: underline dotted var(--accent); text-underline-offset: 5px; }
     .w.guess { text-decoration: underline wavy var(--warn); text-underline-offset: 5px; }
     .w.alts { cursor: pointer; background: var(--soft); }
@@ -339,7 +339,6 @@
     <header>
       <div>
         <h1>Монгол бичиг ⇄ Кирилл</h1>
-        <p class="sub">Open transliteration based on standard public Mongolian script rules; no bundled proprietary word list.</p>
       </div>
       <div class="tools">
         <div class="uilang" role="group" id="theme">
@@ -359,12 +358,6 @@
       <div class="lang" id="to">Монгол бичиг</div>
     </div>
 
-    <div class="ex" id="examples">
-      <button type="button" data-example="Монголын соёл">Монголын соёл</button>
-      <button type="button" data-example="Сайн байна уу">Сайн байна уу</button>
-      <button type="button" data-example="ᠮᠣᠩᠭᠣᠯ ᠪᠢᠴᠢᠭ">ᠮᠣᠩᠭᠣᠯ ᠪᠢᠴᠢᠭ</button>
-    </div>
-
     <div class="panes">
       <section class="pane">
         <div class="phead"><span>Input</span><button id="clear" type="button">Clear</button></div>
@@ -379,19 +372,15 @@
 
   <script>
     const cyrToMong = {
-      a: 'ᠠ', b: 'ᠪ', c: 'ᠴ', d: 'ᠳ', e: 'ᠡ', f: 'ᠹ', g: 'ᠭ', h: 'ᠬ', i: 'ᠢ', j: 'ᠵ', k: 'ᠬ', l: 'ᠯ', m: 'ᠮ', n: 'ᠨ', o: 'ᠣ', p: 'ᠫ', q: 'ᠴ', r: 'ᠷ', s: 'ᠰ', t: 'ᠲ', u: 'ᠤ', v: 'ᠸ', w: 'ᠸ', x: 'ᠰ', y: 'ᠶ', z: 'ᠽ',
-      A: 'ᠠ', B: 'ᠪ', C: 'ᠴ', D: 'ᠳ', E: 'ᠡ', F: 'ᠹ', G: 'ᠭ', H: 'ᠬ', I: 'ᠢ', J: 'ᠵ', K: 'ᠬ', L: 'ᠯ', M: 'ᠮ', N: 'ᠨ', O: 'ᠣ', P: 'ᠫ', Q: 'ᠴ', R: 'ᠷ', S: 'ᠰ', T: 'ᠲ', U: 'ᠤ', V: 'ᠸ', W: 'ᠸ', X: 'ᠰ', Y: 'ᠶ', Z: 'ᠽ',
       'а': 'ᠠ', 'б': 'ᠪ', 'в': 'ᠸ', 'г': 'ᠭ', 'д': 'ᠳ', 'е': 'ᠡ', 'ё': 'ᠶᠣ', 'ж': 'ᠵ', 'з': 'ᠽ', 'и': 'ᠢ', 'й': 'ᠶ', 'к': 'ᠬ', 'л': 'ᠯ', 'м': 'ᠮ', 'н': 'ᠨ', 'о': 'ᠣ', 'ө': 'ᠥ', 'п': 'ᠫ', 'р': 'ᠷ', 'с': 'ᠰ', 'т': 'ᠲ', 'у': 'ᠤ', 'ү': 'ᠦ', 'ф': 'ᠹ', 'х': 'ᠬ', 'ц': 'ᠴ', 'ч': 'ᠴ', 'ш': 'ᠱ', 'э': 'ᠡ', 'ю': 'ᠶᠤ', 'я': 'ᠶᠠ', 'ъ': '', 'ь': '',
       'А': 'ᠠ', 'Б': 'ᠪ', 'В': 'ᠸ', 'Г': 'ᠭ', 'Д': 'ᠳ', 'Е': 'ᠡ', 'Ё': 'ᠶᠣ', 'Ж': 'ᠵ', 'З': 'ᠽ', 'И': 'ᠢ', 'Й': 'ᠶ', 'К': 'ᠬ', 'Л': 'ᠯ', 'М': 'ᠮ', 'Н': 'ᠨ', 'О': 'ᠣ', 'Ө': 'ᠥ', 'П': 'ᠫ', 'Р': 'ᠷ', 'С': 'ᠰ', 'Т': 'ᠲ', 'У': 'ᠤ', 'Ү': 'ᠦ', 'Ф': 'ᠹ', 'Х': 'ᠬ', 'Ц': 'ᠴ', 'Ч': 'ᠴ', 'Ш': 'ᠱ', 'Э': 'ᠡ', 'Ю': 'ᠶᠤ', 'Я': 'ᠶᠠ'
     };
 
     const mongToCyr = {
       'ᠠ':'а', 'ᠡ':'е', 'ᠢ':'и', 'ᠣ':'о', 'ᠤ':'у', 'ᠥ':'ө', 'ᠦ':'ү', 'ᠧ':'э',
-      'ᠪ':'б', 'ᠬ':'х', 'ᠭ':'г', 'ᠳ':'д', 'ᠷ':'р', 'ᠯ':'л', 'ᠮ':'м', 'ᠨ':'н', 'ᠩ':'нг',
-      'ᠫ':'п', 'ᠰ':'с', 'ᠲ':'т', 'ᠴ':'ц', 'ᠵ':'ж', 'ᠶ':'й', 'ᠷ':'р', 'ᠹ':'ф', 'ᠱ':'ш',
-      'ᠸ':'в', 'ᠽ':'з', 'ᠾ':'һ', 'ᠿ':'щ', 'ᡀ':'лх', 'ᡁ':'х', 'ᡂ':'ы', 'ᡃ':'ѣ',
-      ' ': ' ', '-': '-', '—': '—', '.': '.', ',': ',', '!': '!', '?': '?', ':': ':', ';': ';', '(': '(', ')': ')',
-      '᠎': ''
+      'ᠪ':'б', 'ᠬ':'х', 'ᠭ':'г', 'ᠳ':'д', 'ᠷ':'р', 'ᠯ':'л', 'ᠮ':'м', 'ᠨ':'н',
+      'ᠫ':'п', 'ᠰ':'с', 'ᠲ':'т', 'ᠴ':'ц', 'ᠵ':'ж', 'ᠶ':'й', 'ᠹ':'ф', 'ᠱ':'ш',
+      'ᠸ':'в', 'ᠽ':'з', ' ': ' ', '-': '-', '—': '—', '.': '.', ',': ',', '!': '!', '?': '?', ':': ':', ';': ';', '(': '(', ')': ')'
     };
 
     const textInput = document.getElementById('input');
@@ -404,21 +393,19 @@
     const themeButtons = document.querySelectorAll('[data-theme]');
     const langButtons = document.querySelectorAll('[data-lang]');
 
-    let sourceLang = 'mn';
-    let targetLang = 'en';
+    let sourceLang = 'en';
+    let targetLang = 'mn';
 
     function normalizeText(value) {
       return value.replace(/\r/g, '');
     }
 
     function transliterateCyrillicToMongolian(value) {
-      const chars = Array.from(normalizeText(value));
-      return chars.map((ch) => cyrToMong[ch] ?? ch).join('');
+      return Array.from(normalizeText(value)).map(ch => cyrToMong[ch] ?? ch).join('');
     }
 
     function transliterateMongolianToCyrillic(value) {
-      const chars = Array.from(normalizeText(value));
-      return chars.map((ch) => mongToCyr[ch] ?? ch).join('');
+      return Array.from(normalizeText(value)).map(ch => mongToCyr[ch] ?? ch).join('');
     }
 
     function applyConversion() {
@@ -443,18 +430,14 @@
       fromEl.textContent = fromLabel;
       toEl.textContent = toLabel;
 
-      document.querySelectorAll('[data-lang]').forEach((button) => {
+      langButtons.forEach((button) => {
         const isActive = button.dataset.lang === sourceLang;
         button.setAttribute('aria-pressed', String(isActive));
       });
     }
 
     function updateDirection() {
-      if (sourceLang === 'mn') {
-        targetLang = 'en';
-      } else {
-        targetLang = 'mn';
-      }
+      targetLang = sourceLang === 'en' ? 'mn' : 'en';
       setLanguageSelection();
       applyConversion();
     }
@@ -462,7 +445,7 @@
     function applyTheme(theme) {
       document.documentElement.dataset.theme = theme;
       localStorage.setItem('theme', theme);
-      document.querySelectorAll('[data-theme]').forEach((button) => {
+      themeButtons.forEach((button) => {
         button.setAttribute('aria-pressed', String(button.dataset.theme === theme));
       });
     }
@@ -470,7 +453,7 @@
     textInput.addEventListener('input', applyConversion);
 
     swapBtn.addEventListener('click', () => {
-      sourceLang = sourceLang === 'mn' ? 'en' : 'mn';
+      sourceLang = sourceLang === 'en' ? 'mn' : 'en';
       updateDirection();
     });
 
@@ -503,13 +486,6 @@
       button.addEventListener('click', () => {
         sourceLang = button.dataset.lang;
         updateDirection();
-      });
-    });
-
-    document.querySelectorAll('[data-example]').forEach((button) => {
-      button.addEventListener('click', () => {
-        textInput.value = button.dataset.example;
-        applyConversion();
       });
     });
 
