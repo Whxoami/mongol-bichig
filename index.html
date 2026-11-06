@@ -39,9 +39,6 @@ textarea,.out{width:100%;height:clamp(20rem,42vh,34rem);margin:0;border:0;backgr
 .out{white-space:pre-wrap;overflow-wrap:anywhere}
 .mn{font-family:var(--mn);writing-mode:vertical-lr;font-size:2.3rem;line-height:1.9;white-space:pre-wrap}
 .w{border-radius:3px;cursor:default}
-.w.dict{}
-.w.split{text-decoration:underline dotted var(--accent);text-underline-offset:5px}
-.w.guess{text-decoration:underline wavy var(--warn);text-underline-offset:5px}
 .w.alts{cursor:pointer;background:var(--soft)}
 .keys{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;border-top:1px solid var(--line)}
 .keys button{width:48px;height:54px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;font-family:var(--mn);font-size:1.7rem;cursor:pointer;padding:0}
@@ -52,8 +49,6 @@ textarea,.out{width:100%;height:clamp(20rem,42vh,34rem);margin:0;border:0;backgr
 .ex button{font:inherit;font-size:1.1rem;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:4px 12px;border-radius:999px;cursor:pointer}
 .ex button:hover{background:var(--soft)}
 .note{font-size:.85rem;color:var(--muted);max-width:75ch;margin:0}
-.k{display:inline-block;width:3.2em;border-bottom:2px solid var(--muted);height:0;vertical-align:middle}
-.k.s{border-bottom:2px dotted var(--accent)}.k.g{border-bottom:2px dotted var(--warn)}
 .tog{display:flex;gap:12px;flex-wrap:wrap}
 .seg{display:flex;padding:4px;border:1px solid var(--line);border-radius:999px;background:var(--panel)}
 .seg button{font:inherit;font-size:1rem;border:0;background:transparent;color:var(--muted);padding:8px 18px;border-radius:999px;cursor:pointer}
@@ -69,12 +64,27 @@ textarea,.out{width:100%;height:clamp(20rem,42vh,34rem);margin:0;border:0;backgr
 .alt .g.v{font-family:var(--mn);writing-mode:vertical-lr;font-size:1.5rem;line-height:1.35;max-height:8em;overflow:hidden}
 .alt .c{font-size:.8rem;color:var(--muted)}
 .alt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.posbtn{font:inherit;font-size:1rem;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:8px 18px;border-radius:999px;cursor:pointer}
+.posbtn[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.poslegend{display:flex;flex-wrap:wrap;gap:6px 8px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.poslegend .pc{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:transparent;color:var(--ink);padding:4px 12px;border-radius:999px;cursor:pointer;font:inherit;font-size:.9rem}
+.poslegend .pc i{width:.8em;height:.8em;border-radius:50%;background:var(--c)}
+.poslegend .pc[aria-pressed="true"]{border-color:var(--c);box-shadow:0 0 0 1px var(--c)}
+.poslegend .note{width:100%;color:var(--muted);font-size:.8rem}
+.out.pos-on .w{color:var(--pc,inherit)}
+.out.pos-on .w.guessed{opacity:.72}
+.out.pos-on.filtering .w{opacity:.2}
+.out.pos-on.filtering .w.sel{opacity:1}
+:root{--p-verb:#B3261E;--p-noun:#1D4F91;--p-name:#7B3FA0;--p-adj:#2E7D32;--p-pron:#00798A;--p-num:#A35F00;--p-adv:#AD1457;--p-func:#6D4C41}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--p-verb:#FF8A80;--p-noun:#7FB2F5;--p-name:#C79BE8;--p-adj:#7FD18A;--p-pron:#5CCFD8;--p-num:#F2B04D;--p-adv:#F48FB1;--p-func:#BCAAA4}}
+:root[data-theme="dark"]{--p-verb:#FF8A80;--p-noun:#7FB2F5;--p-name:#C79BE8;--p-adj:#7FD18A;--p-pron:#5CCFD8;--p-num:#F2B04D;--p-adv:#F48FB1;--p-func:#BCAAA4}
 </style>
 
 <main>
   <div class="tog">
     <div class="seg" id="themeSeg"><button data-v="light">Light</button><button data-v="dark">Dark</button></div>
     <div class="seg" id="langSeg"><button data-v="en">English</button><button data-v="mn">Монгол</button></div>
+    <button class="posbtn" id="posBtn" type="button" aria-pressed="false">Word types</button>
   </div>
 
   <div class="bar">
@@ -93,6 +103,7 @@ textarea,.out{width:100%;height:clamp(20rem,42vh,34rem);margin:0;border:0;backgr
     </section>
     <section class="pane" id="outPane">
       <div class="phead"><span id="outLabel">Үр дүн</span><button id="copy">Copy</button></div>
+      <div class="poslegend" id="poslegend" hidden></div>
       <div class="out" id="output" aria-live="polite"></div>
       <div class="reading" id="reading" hidden></div>
       <div class="altbar" id="altbar" hidden></div>
@@ -100,6 +111,218 @@ textarea,.out{width:100%;height:clamp(20rem,42vh,34rem);margin:0;border:0;backgr
   </div>
 </main>
 
+<script type="text/plain" id="common">аав	ᠠᠪᠤ
+ээж	ᠡᠵᠢ
+эгч	ᠡᠭᠡᠴᠢ
+дүү	ᠳᠡᠭᠦᠦ
+эмээ	ᠡᠮᠡᠭᠡ
+хүү	ᠬᠥᠪᠡᠭᠦᠨ
+охин	ᠣᠬᠢᠨ
+найз	ᠨᠠᠶᠢᠵᠠ
+багш	ᠪᠠᠭᠰᠢ
+сурагч	ᠰᠤᠷᠠᠭᠴᠢ
+эмч	ᠡᠮᠴᠢ
+хүн	ᠬᠦᠮᠦᠨ
+хүүхэд	ᠬᠦᠦᠬᠡᠳ
+монгол	ᠮᠣᠩᠭᠣᠯ
+улс	ᠤᠯᠤᠰ
+хот	ᠬᠣᠲᠠ
+гэр	ᠭᠡᠷ
+ном	ᠨᠣᠮ
+ус	ᠤᠰᠤ
+гал	ᠭᠠᠯ
+мод	ᠮᠣᠳᠣ
+уул	ᠠᠭᠤᠯᠠ
+гол	ᠭᠣᠯ
+нуур	ᠨᠠᠭᠤᠷ
+тэнгэр	ᠲᠡᠩᠭᠡᠷᠢ
+нар	ᠨᠠᠷᠠ
+сар	ᠰᠠᠷᠠ
+од	ᠣᠳᠤ
+салхи	ᠰᠠᠯᠬᠢ
+цас	ᠴᠠᠰᠤ
+мөс	ᠮᠥᠰᠦ
+газар	ᠭᠠᠵᠠᠷ
+цэцэг	ᠴᠡᠴᠡᠭ
+навч	ᠨᠠᠪᠴᠢ
+чулуу	ᠴᠢᠯᠠᠭᠤ
+хад	ᠬᠠᠳᠠ
+нүд	ᠨᠢᠳᠦ
+чих	ᠴᠢᠬᠢ
+шүд	ᠰᠢᠳᠦ
+зүрх	ᠵᠦᠷᠬᠡ
+цээж	ᠴᠡᠭᠡᠵᠢ
+гэдэс	ᠭᠡᠳᠡᠰᠦ
+цаг	ᠴᠠᠭ
+жил	ᠵᠢᠯ
+зун	ᠵᠤᠨ
+хавар	ᠬᠠᠪᠤᠷ
+намар	ᠨᠠᠮᠤᠷ
+цагаан	ᠴᠠᠭᠠᠨ
+хар	ᠬᠠᠷᠠ
+улаан	ᠤᠯᠠᠭᠠᠨ
+ногоон	ᠨᠣᠭᠣᠭᠠᠨ
+шар	ᠰᠢᠷᠠ
+хөх	ᠬᠥᠬᠡ
+ажил	ᠠᠵᠢᠯ
+хоол	ᠬᠣᠭᠣᠯᠠ
+цай	ᠴᠠᠢ
+талх	ᠲᠠᠯᠬᠠ
+мах	ᠮᠠᠬᠠ
+сүү	ᠰᠦᠨᠢ
+будаа	ᠪᠤᠳᠠᠭᠠ
+морь	ᠮᠣᠷᠢ
+үхэр	ᠦᠬᠡᠷ
+хонь	ᠬᠣᠨᠢ
+ямаа	ᠶᠠᠮᠠᠭᠠ
+тэмээ	ᠲᠡᠮᠡᠭᠡ
+нохой	ᠨᠣᠬᠠᠢ
+шувуу	ᠰᠢᠪᠠᠭᠤ
+загас	ᠵᠠᠭᠠᠰᠤ
+сургууль	ᠰᠤᠷᠭᠠᠭᠤᠯᠢ
+хичээл	ᠬᠢᠴᠢᠶᠡᠯ
+дэвтэр	ᠳᠡᠪᠲᠡᠷ
+үзэг	ᠦᠵᠡᠭ
+үг	ᠦᠭᠡ
+хэл	ᠬᠡᠯᠡ
+бичиг	ᠪᠢᠴᠢᠭ
+сайн	ᠰᠠᠶᠢᠨ
+сайхан	ᠰᠠᠶᠢᠬᠠᠨ
+баяр	ᠪᠠᠶᠠᠷ
+муу	ᠮᠤᠤ
+шинэ	ᠰᠢᠨᠡ
+хуучин	ᠬᠠᠭᠤᠴᠢᠨ
+залуу	ᠵᠠᠯᠠᠭᠤ
+урт	ᠤᠷᠲᠤ
+богино	ᠪᠣᠭᠣᠨᠢ
+би	ᠪᠢ
+чи	ᠴᠢ
+та	ᠲᠠ
+тэр	ᠲᠡᠷᠡ
+энэ	ᠡᠨᠡ
+бид	ᠪᠢᠳ
+тэд	ᠲᠡᠳᠡ
+хэн	ᠬᠡᠨ
+юу	ᠶᠠᠭᠤ
+ба	ᠪᠠ
+зүүн	ᠵᠡᠭᠦᠨ
+баруун	ᠪᠠᠷᠠᠭᠤᠨ
+худам	ᠬᠤᠳᠤᠮ
+цэг	ᠴᠡᠭ
+давхар	ᠳᠠᠪᠬᠤᠷ
+шилбэ	ᠰᠢᠯᠪᠢ
+нум	ᠨᠤᠮᠤ
+хаан	ᠬᠠᠭᠠᠨ
+тоос	ᠲᠣᠭᠣᠰᠤ
+гахай	ᠭᠠᠬᠠᠢ
+малгай	ᠮᠠᠯᠭᠠᠢ
+хонх	ᠬᠣᠩᠬᠣ
+далай	ᠳᠠᠯᠠᠢ
+зориг	ᠵᠣᠷᠢᠭ
+зорь	ᠵᠣᠷᠢ
+орос	ᠣᠷᠣᠰ
+хятад	ᠬᠢᠲᠠᠳ
+япон	ᠶᠠᠫᠣᠨ
+бичих	ᠪᠢᠴᠢᠬᠦ
+явах	ᠶᠠᠪᠤᠬᠤ
+ирэх	ᠢᠷᠡᠬᠦ
+байх	ᠪᠠᠶᠢᠬᠤ
+болох	ᠪᠣᠯᠣᠬᠤ
+авах	ᠠᠪᠤᠬᠤ
+харах	ᠬᠠᠷᠠᠬᠤ
+идэх	ᠢᠳᠡᠬᠦ
+унтах	ᠤᠨᠲᠠᠬᠤ
+мэдэх	ᠮᠡᠳᠡᠬᠦ
+санах	ᠰᠠᠨᠠᠬᠤ
+сурах	ᠰᠤᠷᠬᠤ
+хийх	ᠬᠢᠬᠦ
+</script>
+<script type="text/plain" id="fixes"># CORRECTIONS. One per line, tab-separated:  cyrillic <TAB> traditional <TAB> word type (optional)
+# A correction replaces the dictionary spelling for that word. Repeat a word to give it more than one spelling.
+# To only fix the word type, leave the middle column empty. Types: verb noun name adj pron num adv func
+# From the book page 138
+шатах	ᠰᠠᠲᠠᠬᠤ
+шат	ᠰᠠᠲᠤ
+таах	ᠲᠠᠭᠠᠬᠤ
+харанхуй	ᠬᠠᠷᠠᠩᠭᠤᠢ
+шил	ᠰᠢᠯ
+цонх	ᠴᠣᠩᠬᠠ
+дэмжих	ᠳᠡᠮᠵᠢᠬᠦ
+хадаас	ᠬᠠᠳᠠᠭᠠᠰᠤ
+тав	ᠲᠠᠪᠤ
+өвчин	ᠡᠪᠡᠴᠢᠨ
+толгой	ᠲᠣᠯᠤᠭᠠᠢ
+бэлэг	ᠪᠡᠯᠡᠭ
+тэмдэг	ᠲᠡᠮᠳᠡᠭ
+оюун	ᠣᠶᠤᠨ
+билиг	ᠪᠢᠯᠢᠭ
+хайрах	ᠬᠠᠶᠢᠷᠠᠬᠤ
+хайр	ᠬᠠᠶᠢᠷᠠ
+сэтгэл	ᠰᠡᠳᠬᠢᠯ
+зэвсэг	ᠵᠡᠪᠰᠡᠭ
+бүгд	ᠪᠦᠭᠦᠳᠡ
+ярах	ᠶᠠᠷᠢᠬᠤ
+хасах	ᠬᠠᠰᠤᠬᠤ
+гуя	ᠭᠤᠶᠠ
+тарга	ᠲᠠᠷᠢᠭᠠ
+майхан	ᠮᠠᠶᠢᠬᠠᠨ
+асар	ᠠᠰᠠᠷ
+мэдрэх	ᠮᠡᠳᠡᠷᠡᠬᠤ
+сэрэх	ᠰᠡᠷᠢᠬᠦ
+ижил	ᠢᠵᠢᠯ
+хос	ᠬᠣᠰ
+эд	ᠡᠳ
+бараа	ᠪᠠᠷᠠᠭᠠ
+эм	ᠡᠮᠡ
+эр	ᠡᠷᠡ
+шарах	ᠰᠢᠷᠠᠬᠤ
+нуруу	ᠨᠢᠷᠤᠭᠤ
+нутаг	ᠨᠤᠲᠤᠭ
+хуурай	ᠬᠤᠭᠤᠷᠠᠢ
+мөнгө	ᠮᠥᠩᠭᠦ
+# From the book page 137 (Дүрс ялган бичсэн үгийн толь)
+бэх	ᠪᠡᠬᠡ
+бат	ᠪᠠᠲᠤ
+үе	ᠦᠶᠡ
+түүх	ᠲᠡᠦᠬᠡ
+намтар	ᠨᠠᠮᠲᠠᠷ
+овоо	ᠣᠪᠣᠭᠠ
+тоо	ᠲᠣᠭᠠ
+яс	ᠶᠠᠰᠤ
+дал	ᠳᠠᠯᠠ
+мөр	ᠮᠥᠷ
+зам	ᠵᠠᠮ
+урах	ᠤᠷᠠᠬᠤ
+ур	ᠤᠷᠠ
+чадал	ᠴᠠᠳᠠᠯ
+чадвар	ᠴᠠᠳᠪᠠᠷᠢ
+бүл	ᠪᠦᠯᠡ
+бүлэх	ᠪᠦᠯᠡᠬᠦ
+хялбар	ᠬᠢᠯᠪᠠᠷ
+амар	ᠠᠮᠠᠷ
+амрах	ᠠᠮᠠᠷᠠᠬᠤ
+ил	ᠢᠯᠡ
+тод	ᠲᠣᠳᠤ
+төл	ᠲᠥᠯ
+тулах	ᠲᠤᠯᠠᠬᠤ
+ид	ᠢᠳᠡ
+хав	ᠬᠠᠪ
+алхах	ᠠᠯᠬᠤᠬᠤ
+багаж	ᠪᠠᠭᠠᠵᠢ
+савах	ᠰᠠᠪᠠᠬᠤ
+сав	ᠰᠠᠪ
+суулга	ᠰᠤᠤᠯᠭᠠ
+хур	ᠬᠤᠷᠠ
+бороо	ᠪᠣᠷᠣᠭᠠ
+зүс	ᠵᠦᠰ
+өнгө	ᠥᠩᠭᠡ
+чимээ	ᠴᠢᠮᠡᠭᠡ
+дур	ᠳᠤᠷᠠ
+ан	ᠠᠩᠠ
+ав	ᠠᠪᠤ
+адил	ᠠᠳᠠᠯᠢ
+даваа	ᠳᠠᠪᠠᠭᠠ
+</script>
 <script type="text/plain" id="dict">аажав	ᠠᠵᠠᠪ
 аажимбаяр	ᠠᠭᠠᠵᠢᠮᠪᠠᠶᠠᠷ
 абага	ᠠᠪᠠᠭᠠ
@@ -28908,68 +29131,95 @@ textarea,.out{width:100%;height:clamp(20rem,42vh,34rem);margin:0;border:0;backgr
 const FEM_C = /[эөүе]/, 
   V_C = 'аэоуөүиыеёюя';
 const isV = ch => V_C.includes(ch);
-function cyrToTrad(w){
-  w = w.toLowerCase();
-  const fem = FEM_C.test(w);
-  let out = '', seenV = false, i = 0;
-  const n = w.length;
-  const prevV = () => i>0 && isV(w[i-1]);
+// Cyrillic -> traditional by spelling rules. Options o: gal (use loan-word "galig" letters), fv (add a hidden final vowel), alt (other long-vowel spelling)
+function cyrToTrad(w,o){
+  o=o||{};
+  w=w.toLowerCase();
+  const fem=FEM_C.test(w);
+  const loan=/[кфщ]/.test(w);   // words with к/ф/щ are foreign: later o stays ᠣ (кино = ᠺᠢᠨᠣ)
+  const cs=[...w],n=cs.length;
+  const vow=c=>!!c&&V_C.includes(c);
+  // long vowels: at the very start of the word / in the first syllable / in later syllables
+  const L_INIT={а:'ᠠᠭᠠ',э:'ᠡᠭᠡ',о:'ᠣᠭᠣ',ө:'ᠥᠭᠥ',у:'ᠠᠭᠤ',ү:'ᠡᠭᠦ'};
+  const L_FIRST={а:'ᠠᠭᠠ',э:'ᠡᠭᠡ',о:'ᠣᠭᠣ',ө:'ᠥᠭᠥ',у:'ᠤᠤ',ү:'ᠦᠦ'};
+  const L_LATER={а:'ᠠᠭᠠ',э:'ᠡᠭᠡ',о:'ᠤᠭᠠ',ө:'ᠦᠭᠡ',у:'ᠠᠭᠤ',ү:'ᠡᠭᠦ'};
+  const L_DBL={а:'ᠠᠠ',э:'ᠡᠡ',о:'ᠣᠣ',ө:'ᠥᠥ',у:'ᠤᠤ',ү:'ᠦᠦ'};
+  let out='',seenV=false,firstV='',i=0;
+  if(w.startsWith('лх')&&n>2&&vow(cs[2])){out+='ᡀ';i=2}   // Lh- (Lhagva): one letter
   while(i<n){
-    const ch = w[i], nx = w[i+1];
-    // long vowels / diphthong-ish pairs
-    if(ch===nx && 'аэоуөү'.includes(ch)){
-      const m = {а:'ᠠ',э:'ᠡ',о:'ᠣ',у:'ᠤ',ө:'ᠥ',ү:'ᠦ'}[ch];
-      if(!seenV){ // first syllable long vowel
-        if(ch==='а') out+='ᠠ'; else if(ch==='э') out+='ᠡ';
-        else if(ch==='о') out+='ᠣ'+'ᠣ'; else if(ch==='у') out+='ᠠᠭᠤ';
-        else if(ch==='ө') out+='ᠥᠥ'; else out+='ᠡᠭᠦ';
-        if(ch==='а'||ch==='э') out+= (ch==='а'?'ᠠ':'ᠡ');
-      } else {
-        if(ch==='а') out+='ᠠᠭᠠ'; else if(ch==='э') out+='ᠡᠭᠡ';
-        else if(ch==='о') out+='ᠤᠭᠤ'; else if(ch==='у') out+='ᠤᠭᠤ';
-        else if(ch==='ө') out+='ᠦᠭᠦ'; else out+='ᠦᠦ';
-      }
-      seenV = true; i+=2; continue;
+    const ch=cs[i],nx=cs[i+1],pv=cs[i-1],first=!seenV;
+    if(ch===nx&&'аэоуөү'.includes(ch)){
+      const pos=first?(i===0?'I':'F'):'L';
+      let t=(pos==='I'?L_INIT:pos==='F'?L_FIRST:L_LATER)[ch];
+      if(o.alt)t=((ch==='у'||ch==='ү')&&pos==='F')?L_INIT[ch]:L_DBL[ch];
+      out+=t;if(first)firstV=ch;seenV=true;i+=2;continue;
+    }
+    // я/ю/ё/е followed by the matching vowel is one syllable (адъяа = ᠠᠳᠢᠶᠠ)
+    if('яюёе'.includes(ch)&&nx&&((ch==='я'&&nx==='а')||(ch==='ю'&&(nx==='у'||nx==='ү'))||(ch==='ё'&&nx==='о')||(ch==='е'&&nx==='э'))){
+      out+=ch==='я'?'ᠶᠠ':ch==='ю'?(fem?'ᠶᠦ':'ᠶᠤ'):ch==='ё'?'ᠶᠣ':(o.gal?'ᠧ':'ᠶᠡ');
+      if(first)firstV=ch;seenV=true;i+=2;continue;
     }
     switch(ch){
-      case 'а': out+='ᠠ'; seenV=true; break;
-      case 'э': out+='ᠡ'; seenV=true; break;
-      case 'и': out+='ᠢ'; seenV=true; break;
-      case 'ы': out+='ᠢ'; seenV=true; break;
-      case 'о': out+= seenV?'ᠤ':'ᠣ'; seenV=true; break;
-      case 'у': out+='ᠤ'; seenV=true; break;
-      case 'ө': out+= seenV?'ᠦ':'ᠥ'; seenV=true; break;
-      case 'ү': out+='ᠦ'; seenV=true; break;
-      case 'й': out+='ᠢ'; if(nx && isV(nx)) out=out.slice(0,-1)+'ᠶ'; break;
-      case 'я': out+= (seenV||true)?'ᠶᠠ':''; seenV=true; break;
-      case 'ю': out+= fem?'ᠶᠦ':'ᠶᠤ'; seenV=true; break;
-      case 'е': out+= 'ᠶᠡ'; seenV=true; break;
-      case 'ё': out+= 'ᠶᠣ'; seenV=true; break;
-      case 'б': out+='ᠪ'; break;
-      case 'в': out+='ᠪ'; break;
-      case 'г': out+='ᠭ'; break;
-      case 'д': out+='ᠳ'; break;
-      case 'ж': out+='ᠵ'; break;
-      case 'з': out+='ᠵ'; break;
-      case 'к': out+='ᠻ'; break;
-      case 'л': out+='ᠯ'; break;
-      case 'м': out+='ᠮ'; break;
-      case 'н': out+= (nx && !isV(nx) && nx!=='ь' && 'гхкб'.includes(nx))?'ᠩ':'ᠨ'; break;
-      case 'п': out+='ᠫ'; break;
-      case 'р': out+='ᠷ'; break;
-      case 'с': out+='ᠰ'; break;
-      case 'т': out+='ᠲ'; break;
-      case 'ф': out+='ᠹ'; break;
-      case 'х': out+='ᠬ'; break;
-      case 'ц': out+='ᠴ'; break;
-      case 'ч': out+='ᠴ'; break;
-      case 'ш': out+='ᠱ'; break;
-      case 'ь': case 'ъ': break;
-      default: out+=ch;
+      case 'а':out+='ᠠ';break;
+      case 'э':out+='ᠡ';break;
+      case 'и':case 'ы':out+='ᠢ';break;
+      case 'о':out+=(first||loan||firstV==='о')?'ᠣ':'ᠤ';break;
+      case 'у':out+='ᠤ';break;
+      case 'ө':out+=(first||firstV==='ө')?'ᠥ':'ᠦ';break;
+      case 'ү':out+='ᠦ';break;
+      case 'я':out+='ᠶᠠ';break;
+      case 'ю':out+=fem?'ᠶᠦ':'ᠶᠤ';break;
+      case 'е':out+=o.gal?'ᠧ':'ᠶᠡ';break;
+      case 'ё':out+='ᠶᠣ';break;
+      case 'б':out+='ᠪ';break;
+      case 'в':out+=o.gal?'ᠸ':'ᠪ';break;
+      case 'г':out+='ᠭ';break;
+      case 'д':out+='ᠳ';break;
+      case 'ж':out+=o.gal?'ᠿ':'ᠵ';break;
+      case 'з':out+=o.gal?'ᠽ':'ᠵ';break;
+      case 'к':out+='ᠺ';break;
+      case 'л':out+='ᠯ';break;
+      case 'м':out+='ᠮ';break;
+      case 'н':out+=(nx&&'гхкб'.includes(nx))?'ᠩ':'ᠨ';break;
+      case 'п':out+='ᠫ';break;
+      case 'р':out+='ᠷ';break;
+      case 'с':out+='ᠰ';break;
+      case 'т':out+='ᠲ';break;
+      case 'ф':out+='ᠹ';break;
+      case 'х':out+=o.gal?'ᠾ':'ᠬ';break;
+      case 'ц':out+=o.gal?'ᠼ':'ᠴ';break;
+      case 'ч':out+='ᠴ';break;
+      case 'ш':case 'щ':out+='ᠱ';break;
+      case 'ь':case 'ъ':out+='ᠢ';break;                       // the soft sign marks a dropped final ᠢ (морь = ᠮᠣᠷᠢ)
+      case 'й':
+        if(pv==='и'||pv==='ы'){}                                // ий is a single ᠢ
+        else if(nx&&vow(nx))out+='ᠶ';
+        else if(nx&&nx!=='ь'&&nx!=='ъ')out+='ᠶᠢ';              // сайн = ᠰᠠᠶᠢᠨ
+        else out+='ᠢ';                                          // цай = ᠴᠠᠢ
+        break;
+      default:out+=ch;
     }
+    if(first&&vow(ch))firstV=ch;
+    if(vow(ch))seenV=true;
     i++;
   }
+  if(o.fv&&/[бвгджзклмнпрстфхцчшщ]$/.test(w))out+=o.fv;      // a final vowel that Cyrillic does not write
   return out;
+}
+// Several candidate spellings for a word that is not in any list: the person picks the right one
+function fallbackAlts(c){
+  const w=c.toLowerCase(),res=[];
+  const add=(t,lab)=>{if(t&&!res.some(x=>x.t===t))res.push({t,lab})};
+  add(cyrToTrad(w),'basic');
+  if(/[бвгджзклмнпрстфхцчшщ]$/.test(w)&&w.length>=2){
+    const fem=FEM_C.test(w);
+    add(cyrToTrad(w,{fv:fem?'ᠡ':'ᠠ'}),'fv');
+    add(cyrToTrad(w,{fv:'ᠢ'}),'fi');
+    add(cyrToTrad(w,{fv:fem?'ᠦ':'ᠤ'}),'fu');
+  }
+  if(/[аэоуөү]{2}/.test(w)&&/(аа|ээ|оо|уу|өө|үү)/.test(w))add(cyrToTrad(w,{alt:true}),'long');
+  if(/[ецзхжв]/.test(w))add(cyrToTrad(w,{gal:true}),'gal');
+  return res.slice(0,8);
 }
 function tradToCyr(w){
   const chars=[...w];
@@ -28996,7 +29246,8 @@ function tradToCyr(w){
       case 'ᠨ': case 'ᠩ': out+='н'; break;
       case 'ᠰ': out+='с'; break; case 'ᠱ': out+='ш'; break;
       case 'ᠸ': out+='в'; break; case 'ᠹ': out+='ф'; break;
-      case 'ᠻ': out+='к'; break; case 'ᠼ': out+='ц'; break;
+      case 'ᠻ': case 'ᠺ': out+='к'; break; case 'ᠼ': out+='ц'; break;
+      case 'ᠧ': out+='е'; break; case 'ᠽ': out+='з'; break; case 'ᠾ': out+='х'; break; case 'ᠿ': out+='ж'; break; case 'ᡀ': out+='лх'; break; case 'ᡁ': out+='жи'; break; case 'ᡂ': out+='чи'; break;
       default: out+=ch;
     }
   }
@@ -29011,6 +29262,19 @@ for(const line of document.getElementById('dict').textContent.split('\n')){
   const i=line.indexOf('\t'); if(i<1)continue;
   const c=line.slice(0,i),t=line.slice(i+1); add(C2T,c,t); add(T2C,t,c);
 }
+const FIX_POS={};
+function loadTable(id,withPos){
+  const seen=new Set();
+  for(const line of (document.getElementById(id)?.textContent||'').split('\n')){
+    if(!line.trim()||line.startsWith('#'))continue;
+    const [c,t,pz]=line.split('\t').map(x=>x.trim());
+    if(!c)continue;const k=c.toLowerCase();
+    if(t){if(!seen.has(k)){C2T.set(k,[t]);seen.add(k)}else if(!C2T.get(k).includes(t))C2T.get(k).push(t);add(T2C,t,k)}
+    if(withPos&&pz)FIX_POS[k]=pz;
+  }
+}
+loadTable('common',false);   // everyday words
+loadTable('fixes',true);     // corrections (win over everything)
 
 let dir='t2c'; // t2c = traditional to Cyrillic
 const $=id=>document.getElementById(id);
@@ -29030,7 +29294,8 @@ function piece(w,d){
     const a=m.get(arr.slice(0,k).join('')),b=m.get(arr.slice(k).join(''));
     if(a&&b)return{kind:'split',alts:[a[0]+b[0]]};
   }
-  return{kind:'guess',alts:[d==='c2t'?cyrToTrad(key):tradToCyr(key)]};
+  if(d==='c2t'){const fa=fallbackAlts(key);return{kind:'guess',alts:fa.map(x=>x.t),labs:fa.map(x=>x.lab)}}
+  return{kind:'guess',alts:[tradToCyr(key)]};
 }
 // ---- Case suffixes (from the grammar tables): written as a separate suffix after a narrow no-break space ----
 // ablative -аас/-ээс/-оос/-өөс -> ᠠᠴᠠ / ᠡᠴᠡ ; genitive -ын/-ийн after a consonant -> ᠤᠨ / ᠦᠨ ; after a vowel -> ᠶᠢᠨ ; after final н -ы/-ий -> ᠤ / ᠦ
@@ -29107,11 +29372,12 @@ function latinPiece(w){
   for(const c of (SK_EX.get(sl)||[]))push(c);                // same letters, vowels written loosely
   for(const c of (SK_CO.get(coll(sl))||[]))push(c);          // long/short vowel differences ignored
   if(alts.length)return{kind:direct?'dict':'split',alts:alts.slice(0,10),src:src.slice(0,10)};
-  for(const c of latCands(w).slice(0,4)){
+  const labs=[];
+  for(const c of latCands(w).slice(0,3)){
     const p=piece(c,'c2t');
-    if(!alts.includes(p.alts[0])){alts.push(p.alts[0]);src.push(c)}
+    p.alts.slice(0,4).forEach((t,j)=>{if(!alts.includes(t)&&alts.length<9){alts.push(t);src.push(c);labs.push(p.labs?p.labs[j]:'basic')}});
   }
-  return{kind:'guess',alts,src};
+  return{kind:'guess',alts,src,labs};
 }
 function latinWord(w){
   const parts=w.split(/[‐-]/);
@@ -29147,6 +29413,77 @@ function convert(text,d){
 const show=r=>r.cap?cap(r.alts[r.i]):r.alts[r.i];
 const PUNCT_C2T={',':'᠂','.':'᠃','?':'᠉','!':'᠉'},PUNCT_T2C={'᠂':',','᠃':'.','᠈':',','᠉':'?'};
 
+// ---- Word types (verb / noun / ...): names from the dictionary, a list of common words, and verb endings ----
+const LEXTXT={
+ pron:'би чи та тэр энэ бид бидэн тэд тэдгээр эдгээр энэхүү тэрхүү хэн юу аль ямар хэд хэдэн хаана хаашаа хаанаас яагаад яаж хэзээ өөрөө миний чиний таны түүний манай тэдний бидний надад чамд танд түүнд бидэнд тэдэнд намайг чамайг таныг түүнийг биднийг тэднийг надаас чамаас танаас түүнээс ийм тийм иймд ийнхүү тийнхүү бүх бүгд бусад өөр зарим аливаа',
+ num:'нэг хоёр гурав дөрөв тав зургаа долоо найм ес арав хорь гуч дөч тавь жар дал ная ер зуу мянга сая тэрбум нэгэн арван хорин гучин дөчин тавин жаран далан наян ерэн зуун мянган хагас',
+ adv:'маш тун нэлээд нэлээн арай одоо өнөөдөр маргааш өчигдөр өнөө дандаа үргэлж заримдаа ихэвчлэн удахгүй дахиад дахин ахин бараг зөвхөн ердөө хамгийн илүү тэгээд тэгвэл тэгэхээр эртхэн удалгүй ихээхэн яг заавал магадгүй гэнэт аажуу аажим хэдийн',
+ func:'ба болон ч бас мөн эсвэл гэхдээ харин гэвч тиймээс учир учраас байтугай бол л шүү даа юм билээ биз бэ уу үү биш үгүй гэж гэсэн гэх гэнэ нь чинь минь дотор гадна дээр доор хойно өмнө хооронд дунд тухай талаар талаас хүртэл хамт адил шиг төлөө зэрэг дагуу дараа тулд бөгөөд тул',
+ adj:'сайн муу том жижиг бага олон цөөн их улаан цэнхэр хар цагаан ногоон шар хөх бор ягаан улбар шинэ хуучин залуу хөгшин урт богино өндөр нам өргөн нарийн зузаан нимгэн хүнд хөнгөн удаан халуун хүйтэн дулаан сэрүүн цэвэр бохир хөөрхөн үзэсгэлэнтэй сайхан гоё эрүүл ухаалаг овсгоотой хүчтэй сул тайван зөв буруу амархан хэцүү чухал үнэн худал хурдан аятайхан баян ядуу эелдэг ухаантай',
+ noun:'хүн хүүхэд охин хүү эмэгтэй эрэгтэй ээж аав ах эгч дүү өвөө эмээ найз багш сурагч оюутан эмч жолооч гэр байшин сургууль эмнэлэг дэлгүүр хот хөдөө улс орон газар зам гүүр гол нуур далай уул хад тэнгэр нар сар од салхи бороо цас мөс ус гал мод навч цэцэг өвс чулуу шороо ном дэвтэр үзэг бичиг үг өгүүлбэр хэл монгол англи орос хятад япон солонгос ажил хоол цай талх мах сүү өндөг будаа гурил жимс хүнс мөнгө өдөр шөнө өглөө орой үдэш жил цаг минут секунд амьтан мал морь үхэр хонь ямаа тэмээ нохой муур шувуу загас тахиа ширээ сандал цонх хаалга ор шүүгээ компьютер утас машин тэрэг онгоц дугуй хувцас гутал малгай цүнх хөгжим дуу бүжиг тоглоом спорт хөл гар толгой нүд чих хамар ам шүд үс зүрх бие сэтгэл бодол мөрөөдөл амьдрал хайр нөхөр эхнэр гэр бүл найзууд улаанбаатар'
+};
+const LEX=new Map();
+for(const k in LEXTXT)for(const w of LEXTXT[k].split(' '))if(!LEX.has(w))LEX.set(w,k);
+const CASE_END=['нууд','нүүд','чууд','чүүд','гийн','гийг','гаас','гээс','гаар','гээр','ууд','үүд','аас','ээс','оос','өөс','аар','ээр','оор','өөр','тай','тэй','той','төй','руу','рүү','лүү','ийн','ыг','ийг','нар','нэр','ын','ны','ний','д','т','г','н'].sort((a,b)=>b.length-a.length);
+function lexStem(w){
+  for(const e of CASE_END){
+    if(w.length>e.length+1&&w.endsWith(e)){const k=LEX.get(w.slice(0,-e.length));if(k&&k!=='func')return k}
+  }
+  return null;
+}
+const VSTEMS='бол бай ир яв ав өг хий хар сана мэд сур суралц ид уу унт бос ажилл тогл суу зогс оч хүр ол алд зур дуул сонс ойлг мэдр бод хэл хэлэ асуу хариул гар ор үз тав хөгж хөдөл бүтээ тусал хүс ун унш яр бич'.split(' ').sort((a,b)=>b.length-a.length);
+const VENDS='х ж ч на нэ но нө сан сэн сон сөн лаа лээ лоо лөө даг дэг дог дөг в аад ээд оод өөд аарай ээрэй оорой өөрэй гаарай гээрэй гоорой гөөрэй аа ээ оо өө гаа гээ гоо гөө вал вэл вол вөл ваас вээс хаар хээр хоор хөөр'.split(' ').sort((a,b)=>b.length-a.length);
+const VERB_RE=new RegExp('^(?:'+VSTEMS.join('|')+')[аэоуөүи]?(?:'+VENDS.join('|')+')$');
+const STRONG_VERB=/(?:лаа|лээ|лоо|лөө|сан|сэн|сон|сөн|даг|дэг|дог|дөг|аад|ээд|оод|өөд|аарай|ээрэй|оорой|өөрэй|гаарай|гээрэй)$/;
+// returns {t: type, sure: true when it comes from a list / dictionary, false when guessed from the ending}
+function posOf(raw,capd,inDict){
+  const w=raw.toLowerCase();
+  if(FIX_POS[w])return{t:FIX_POS[w],sure:true};
+  if(/[‐-]/.test(w))return{t:'name',sure:true};
+  const a=LEX.get(w);if(a)return{t:a,sure:true};
+  const b=lexStem(w);if(b)return{t:b,sure:true};
+  if(capd&&inDict)return{t:'name',sure:true};
+  if(VERB_RE.test(w))return{t:'verb',sure:true};
+  if(inDict)return{t:'name',sure:false};
+  if(w.length>=5&&STRONG_VERB.test(w))return{t:'verb',sure:false};
+  if(w.length>=6&&/(?:дугаар|дүгээр|дахь|дэх)$/.test(w))return{t:'num',sure:false};
+  return{t:'noun',sure:false};
+}
+const segOf=new WeakMap();
+let posOn=false,posFilter=null;
+function cyrOf(s){return dir==='c2t'?(s.src?s.src[s.i]:(s.orig||'')):show(s)}
+function posFor(s){
+  const w=cyrOf(s);
+  const capd=dir==='c2t'?/^[A-ZА-ЯЁӨҮÖÜ]/.test(s.orig||''):s.kind==='dict';
+  return posOf(w,capd,s.kind==='dict'||s.kind==='split');
+}
+function applyPos(sp,s){
+  const z=posFor(s);
+  sp.dataset.pos=z.t;
+  sp.classList.toggle('guessed',!z.sure);
+  if(posOn)sp.style.setProperty('--pc','var(--p-'+z.t+')');else sp.style.removeProperty('--pc');
+  sp.classList.toggle('sel',!!posFilter&&z.t===posFilter);
+  const base=sp.dataset.base||'';
+  sp.title=base+(posOn?(base?' · ':'')+L[lg]['t_'+z.t]+(z.sure?'':' ?'):'');
+}
+const TYPES=['verb','noun','name','adj','pron','num','adv','func'];
+function refreshPos(){
+  output.classList.toggle('pos-on',posOn);
+  output.classList.toggle('filtering',posOn&&!!posFilter);
+  $('poslegend').hidden=!posOn;
+  $('posBtn').setAttribute('aria-pressed',String(posOn));
+  output.querySelectorAll('.w').forEach(el=>{const s=segOf.get(el);if(s)applyPos(el,s)});
+}
+function buildLegend(){
+  const el=$('poslegend');el.textContent='';
+  TYPES.forEach(k=>{
+    const b=document.createElement('button');b.type='button';b.className='pc';
+    b.style.setProperty('--c','var(--p-'+k+')');b.setAttribute('aria-pressed',String(posFilter===k));
+    b.appendChild(document.createElement('i'));b.appendChild(document.createTextNode(L[lg]['t_'+k]));
+    b.onclick=()=>{posFilter=posFilter===k?null:k;buildLegend();refreshPos()};
+    el.appendChild(b)});
+  const n=document.createElement('span');n.className='note';n.textContent=L[lg].posnote;el.appendChild(n);
+}
 const altbar=$('altbar');
 function closeBar(){altbar.hidden=true;altbar.textContent=''}
 function openBar(s,sp,rd){
@@ -29155,8 +29492,8 @@ function openBar(s,sp,rd){
   s.alts.forEach((a,k)=>{
     const b=document.createElement('button');b.type='button';b.className='alt'+(k===s.i?' on':'');
     const g=document.createElement('span');g.className='g'+(dir==='c2t'?' v':'');g.textContent=s.cap?cap(a):a;b.appendChild(g);
-    if(s.src){const c=document.createElement('span');c.className='c';c.textContent=s.src[k];b.appendChild(c)}
-    b.onclick=()=>{s.i=k;sp.textContent=show(s);if(s.src)sp.title='→ '+s.src[k];rd();openBar(s,sp,rd)};
+    {const parts=[];if(s.src)parts.push(s.src[k]);if(s.labs&&s.labs[k])parts.push(L[lg]['lab_'+s.labs[k]]);if(parts.length){const c=document.createElement('span');c.className='c';c.textContent=parts.join(' · ');b.appendChild(c)}}
+    b.onclick=()=>{s.i=k;sp.textContent=show(s);if(s.src)sp.dataset.base='→ '+s.src[k];applyPos(sp,s);rd();openBar(s,sp,rd)};
     altbar.appendChild(b)});
 }
 function render(){
@@ -29183,12 +29520,13 @@ function render(){
     if(s.alts.length>1){sp.tabIndex=0;
       const open=()=>openBar(s,sp,rd);
       sp.onclick=open;sp.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}};}
+    sp.dataset.base=sp.title;segOf.set(sp,s);applyPos(sp,s);
     output.appendChild(sp);
   }
   rd();
 }
-const L={en:{trad:'Traditional script',cyr:'Cyrillic',inp:'Input',out:'Result',clear:'Clear',copy:'Copy',copied:'Copied',sel:'Selected',swap:'Swap direction',try:'Try: ',ph_t:'ᠪᠢᠴᠢᠩ ᠬᠠᠶᠢᠭᠠᠶ…',ph_c:'Type Cyrillic or Latin…',read:'Read as:',pick:'Choose spelling:'},
-mn:{trad:'Уламжлалт бичиг',cyr:'Кирилл',inp:'Оруулах',out:'Үр дүн',clear:'Цэвэрлэх',copy:'Хуулах',copied:'Хуулсан',sel:'Сонгосон',swap:'Чиглэл солих',try:'Жишээ: ',ph_t:'ᠪᠢᠴᠢᠩ ᠬᠠᠶᠢᠭᠠᠶ…',ph_c:'Кирилл эсвэл латинаар бичнэ үү…',read:'Уншилт:',pick:'Бичлэг сонгох:'}};
+const L={en:{trad:'Traditional script',cyr:'Cyrillic',inp:'Input',out:'Result',clear:'Clear',copy:'Copy',copied:'Copied',sel:'Selected',swap:'Swap direction',try:'Try: ',ph_t:'ᠪᠢᠴᠢᠩ ᠬᠠᠶᠢᠭᠠᠶ…',ph_c:'Type Cyrillic or Latin…',read:'Read as:',pick:'Choose spelling:',posbtn:'Word types',lab_basic:'plain',lab_fv:'+ final a/e',lab_fi:'+ final i',lab_fu:'+ final u/ü',lab_long:'long vowel written twice',lab_gal:'foreign-word letters',posnote:'Faded = guessed from the word ending. Tap a colour to show only that type.',t_verb:'Verb',t_noun:'Noun',t_name:'Name',t_adj:'Adjective',t_pron:'Pronoun',t_num:'Number',t_adv:'Adverb',t_func:'Function word'},
+mn:{trad:'Уламжлалт бичиг',cyr:'Кирилл',inp:'Оруулах',out:'Үр дүн',clear:'Цэвэрлэх',copy:'Хуулах',copied:'Хуулсан',sel:'Сонгосон',swap:'Чиглэл солих',try:'Жишээ: ',ph_t:'ᠪᠢᠴᠢᠩ ᠬᠠᠶᠢᠭᠠᠶ…',ph_c:'Кирилл эсвэл латинаар бичнэ үү…',read:'Уншилт:',pick:'Бичлэг сонгох:',posbtn:'Үгийн төрөл',lab_basic:'энгийн',lab_fv:'+ эцсийн а/э',lab_fi:'+ эцсийн и',lab_fu:'+ эцсийн у/ү',lab_long:'урт эгшиг давхар',lab_gal:'галиг үсэг',posnote:'Бүдэг = үгийн төгсгөлөөс таамагласан. Өнгө дарвал зөвхөн тэр төрлийг харуулна.',t_verb:'Үйл үг',t_noun:'Нэр үг',t_name:'Хүний нэр',t_adj:'Тэмдэг нэр',t_pron:'Төлөөний үг',t_num:'Тооны нэр',t_adv:'Дайвар үг',t_func:'Сул үг'}};
 let lg='en';try{lg=localStorage.getItem('lg')||'en'}catch(_){}
 const TRAD=()=>'<b>Монгол бичиг</b><small>'+L[lg].trad+'</small>',CYR=()=>'<b>Кирилл</b><small>'+L[lg].cyr+'</small>';
 const EX_T=['ᠲᠦᠮᠡᠨᠵᠣᠷᠢᠭ','ᠡᠷᠳᠡᠨᠢᠴᠣᠭᠰᠤᠮ','ᠪᠤᠶᠠᠨᠬᠦᠦ','ᠡᠩᠬᠡᠲᠩᠷᠢ'],EX_C=['Түмэнзориг','Эрдэнэчогсом','Буянхүү','Энхтэнгэр','Сүхцэцэг','Bayarmaa','Ulziibat','Tsetsegmaa'];
@@ -29198,6 +29536,7 @@ function setDir(d,keep){
   $('from').innerHTML=t?TRAD():CYR();$('to').innerHTML=t?CYR():TRAD();
   $('inLabel').textContent=L[lg].inp;$('outLabel').textContent=L[lg].out;$('clear').textContent=L[lg].clear;$('copy').textContent=L[lg].copy;$('swap').title=L[lg].swap;$('swap').setAttribute('aria-label',L[lg].swap);
   (t?$('inPane'):$('outPane')).appendChild(keys);
+  $('posBtn').textContent=L[lg].posbtn;buildLegend();
   input.classList.toggle('mn',t);output.classList.toggle('mn',!t);
     input.placeholder=t?L[lg].ph_t:L[lg].ph_c;
   const ex=$('examples');ex.textContent=L[lg].try;
@@ -29213,8 +29552,9 @@ $('copy').onclick=async e=>{
   try{await navigator.clipboard.writeText(txt);b.textContent=L[lg].copied}
   catch(_){const r=document.createRange();r.selectNodeContents(output);const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent=L[lg].sel}
   setTimeout(()=>b.textContent=L[lg].copy,1400)};
-[...'ᠠᠡᠢᠣᠤᠥᠦᠨᠩᠪᠫᠬᠭᠮᠯᠰᠱᠲᠳᠴᠵᠶᠷᠸᠹᠻᠼ'].forEach(ch=>{
-  const b=document.createElement('button');b.type='button';b.textContent=ch;b.setAttribute('aria-label','Insert '+ch);
+const KEYHINT={'ᠧ':'е','ᠹ':'ф','ᠺ':'к','ᠻ':'к (kh)','ᠼ':'ц','ᠽ':'з','ᠾ':'х','ᠿ':'ж','ᡀ':'лх','ᠸ':'в'};
+[...'ᠠᠡᠢᠣᠤᠥᠦᠨᠩᠪᠫᠬᠭᠮᠯᠰᠱᠲᠳᠴᠵᠶᠷᠸᠹᠻᠼᠧᠺᠽᠾᠿᡀ'].forEach(ch=>{
+  const b=document.createElement('button');b.type='button';b.textContent=ch;b.setAttribute('aria-label','Insert '+ch);if(KEYHINT[ch])b.title=KEYHINT[ch];
   b.onmousedown=e=>e.preventDefault();
   b.onclick=()=>{if(dir==='t2c'){const s=input.selectionStart??input.value.length,e=input.selectionEnd??s;
     input.setRangeText(ch,s,e,'end');input.focus();render()}
@@ -29231,6 +29571,7 @@ try{const th=localStorage.getItem('th');if(th)document.documentElement.setAttrib
 input.value='Түмэнзориг Энхтэнгэр';
 setDir('c2t');
 syncSegs();
+$('posBtn').onclick=()=>{posOn=!posOn;if(!posOn)posFilter=null;buildLegend();refreshPos()};
 })();
 </script>
 
